@@ -1,0 +1,39 @@
+# md2html - Markdown 转 HTML 和图片工具
+# 项目地址：https://github.com/your-username/md2html
+
+# ====================
+# 核心依赖
+# ====================
+
+# Markdown 处理核心
+markdown>=3.4.0
+
+# 数学公式支持
+python-markdown-math>=0.8
+
+# 数学公式图片生成
+sympy>=1.11.0
+matplotlib>=3.5.0
+
+# 图片处理
+pillow>=9.0.0
+
+# 代码语法高亮
+Pygments>=2.12.0
+
+# ====================
+# HTML 转图片功能
+# ====================
+
+# 无头浏览器自动化（HTML 转图片）
+playwright>=1.40.0
+
+# ====================
+# 安装说明
+# ====================
+
+# 安装完成后，请运行以下命令安装浏览器驱动：
+# playwright install chromium
+
+# 或者一键安装所有依赖：
+# pip install -r requirements.txt && playwright install chromium 

@@ -212,12 +212,40 @@ def convert_simple_inline_math(latex_code):
 def extract_and_replace_math(content):
     """
     提取LaTeX数学公式并替换为超高清PNG图片
+    注意：需要先保护代码块内容，避免误处理
     """
     if not os.path.exists('images'):
         os.makedirs('images')
     
+    # 第一步：保护代码块内容
+    code_blocks = []
+    code_block_placeholder = "___CODE_BLOCK_PLACEHOLDER_{}_____"
+    
+    # 匹配代码块 (```language\n...```)
+    def save_code_block(match):
+        nonlocal code_blocks
+        placeholder = code_block_placeholder.format(len(code_blocks))
+        code_blocks.append(match.group(0))
+        return placeholder
+    
+    # 保护三个反引号代码块
+    protected_content = re.sub(r'```[\s\S]*?```', save_code_block, content, flags=re.MULTILINE)
+    
+    # 保护单行代码块
+    inline_code_blocks = []
+    inline_code_placeholder = "___INLINE_CODE_PLACEHOLDER_{}_____"
+    
+    def save_inline_code(match):
+        nonlocal inline_code_blocks
+        placeholder = inline_code_placeholder.format(len(inline_code_blocks))
+        inline_code_blocks.append(match.group(0))
+        return placeholder
+    
+    # 保护行内代码
+    protected_content = re.sub(r'`[^`\n]+`', save_inline_code, protected_content)
+    
+    # 第二步：处理数学公式
     math_counter = 0
-    processed_content = content
     
     # 处理块级数学公式 ($$...$$)
     def replace_block_math(match):
@@ -265,9 +293,20 @@ def extract_and_replace_math(content):
         else:
             return f'<span class="math-error">Error: {latex_code}</span>'
     
-    # 替换数学公式
-    processed_content = re.sub(r'\$\$(.*?)\$\$', replace_block_math, processed_content, flags=re.DOTALL)
+    # 现在可以安全地处理数学公式，因为代码块已经被保护
+    processed_content = re.sub(r'\$\$(.*?)\$\$', replace_block_math, protected_content, flags=re.DOTALL)
     processed_content = re.sub(r'(?<!\$)\$([^$\n]+?)\$(?!\$)', replace_inline_math, processed_content)
+    
+    # 第三步：恢复代码块内容
+    # 恢复行内代码
+    for i, inline_code in enumerate(inline_code_blocks):
+        placeholder = inline_code_placeholder.format(i)
+        processed_content = processed_content.replace(placeholder, inline_code)
+    
+    # 恢复代码块
+    for i, code_block in enumerate(code_blocks):
+        placeholder = code_block_placeholder.format(i)
+        processed_content = processed_content.replace(placeholder, code_block)
     
     return processed_content
 
@@ -358,7 +397,17 @@ def md_to_html_with_math_images(md_file, html_file):
         md_content_with_images = extract_and_replace_math(md_content)
         
         # 转换为HTML
-        html_content = markdown(md_content_with_images, extensions=['tables'])
+        html_content = markdown(md_content_with_images, extensions=[
+            'tables',
+            'fenced_code',
+            'codehilite'
+        ], extension_configs={
+            'codehilite': {
+                'css_class': 'highlight',
+                'use_pygments': True,
+                'noclasses': True  # 内联样式，不依赖外部CSS
+            }
+        })
         
         # 从文件名生成标题
         title = os.path.splitext(os.path.basename(md_file))[0]
@@ -394,12 +443,36 @@ def md_to_html_with_math_images(md_file, html_file):
             padding: 2px 4px;
             border-radius: 3px;
             font-family: "Courier New", monospace;
+            font-size: 0.9em;
         }}
         pre {{
             background-color: #f4f4f4;
             padding: 15px;
             border-radius: 5px;
             overflow-x: auto;
+            border: 1px solid #ddd;
+            line-height: 1.45;
+        }}
+        pre code {{
+            background-color: transparent;
+            padding: 0;
+            font-size: 0.9em;
+            line-height: inherit;
+        }}
+        /* 代码高亮样式优化 */
+        .highlight {{
+            background-color: #f4f4f4;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+            margin: 16px 0;
+        }}
+        .highlight pre {{
+            background-color: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
         }}
         blockquote {{
             border-left: 4px solid #3498db;

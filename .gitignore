@@ -71,7 +71,7 @@ images/
 imgs/temp_*
 
 # Output files
-output/
+output/*
 *.docx
 *.pdf
 *.html

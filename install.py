@@ -49,7 +49,19 @@ def main():
         print("💡 请尝试手动运行: playwright install chromium")
         sys.exit(1)
     
-    # 步骤3: 验证安装
+    # 步骤3: 创建 output 目录
+    print("🔧 创建 output 目录...")
+    try:
+        if not os.path.exists("output"):
+            os.makedirs("output")
+            print("✅ output 目录创建完成")
+        else:
+            print("✅ output 目录已存在")
+    except Exception as e:
+        print(f"❌ 创建 output 目录失败: {e}")
+        sys.exit(1)
+    
+    # 步骤4: 验证安装
     print("\n🔍 验证安装...")
     
     # 检查关键模块是否可以导入

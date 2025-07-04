@@ -8,7 +8,18 @@ def md_to_html(md_path, html_path):
     with open(md_path, 'r', encoding='utf-8') as f:
         md_content = f.read()
     # 转为HTML
-    html_content = markdown(md_content, output_format='html5', extensions=['mdx_math'])
+    html_content = markdown(md_content, output_format='html5', extensions=[
+        'mdx_math',
+        'fenced_code',
+        'codehilite',
+        'tables'
+    ], extension_configs={
+        'codehilite': {
+            'css_class': 'highlight',
+            'use_pygments': True,
+            'noclasses': True  # 内联样式，不依赖外部CSS
+        }
+    })
     
     # 创建完整的HTML文档
     filename = os.path.splitext(os.path.basename(md_path))[0]
@@ -36,12 +47,36 @@ def md_to_html(md_path, html_path):
             padding: 2px 4px;
             border-radius: 3px;
             font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.9em;
         }}
         pre {{
             background-color: #f8f9fa;
             padding: 16px;
             border-radius: 6px;
             overflow-x: auto;
+            border: 1px solid #e1e4e8;
+            line-height: 1.45;
+        }}
+        pre code {{
+            background-color: transparent;
+            padding: 0;
+            font-size: 0.9em;
+            line-height: inherit;
+        }}
+        /* 代码高亮样式优化 */
+        .highlight {{
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            border: 1px solid #e1e4e8;
+            margin: 16px 0;
+        }}
+        .highlight pre {{
+            background-color: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
         }}
         blockquote {{
             border-left: 4px solid #ddd;
